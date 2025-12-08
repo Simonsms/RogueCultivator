@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useNoteStore } from "@/stores/note";
 import { useUIStore } from "@/stores/ui";
 import { useThemeStore } from "@/stores/theme";
@@ -7,6 +7,7 @@ import NoteEditor from "@/components/note/NoteEditor.vue";
 import NoteList from "@/components/note/NoteList.vue";
 import LinkList from "@/components/link/LinkList.vue";
 import GlobalSearch from "@/components/search/GlobalSearch.vue";
+import ThemeSettings from "@/components/settings/ThemeSettings.vue";
 
 defineProps<{
   sidebarCollapsed: boolean;
@@ -29,10 +30,8 @@ const hasActiveNote = computed(() => !!currentNote.value);
 // 是否显示链接视图
 const isLinksView = computed(() => uiStore.mainView === "links");
 
-// 切换主题
-const toggleTheme = () => {
-  themeStore.toggleTheme();
-};
+// 设置弹窗
+const showSettings = ref(false);
 </script>
 
 <template>
@@ -75,13 +74,22 @@ const toggleTheme = () => {
           </el-button>
         </el-button-group>
 
-        <!-- 主题切换 -->
-        <el-button text @click="toggleTheme">
-          <el-icon>
-            <Sunny v-if="themeStore.isDark" />
-            <Moon v-else />
-          </el-icon>
-        </el-button>
+        <!-- 主题切换（快捷按钮） -->
+        <el-tooltip content="切换深色/浅色模式" placement="bottom">
+          <el-button text @click="themeStore.toggleTheme()">
+            <el-icon>
+              <Sunny v-if="themeStore.isDark" />
+              <Moon v-else />
+            </el-icon>
+          </el-button>
+        </el-tooltip>
+
+        <!-- 设置按钮 -->
+        <el-tooltip content="主题设置" placement="bottom">
+          <el-button text @click="showSettings = true">
+            <el-icon><Setting /></el-icon>
+          </el-button>
+        </el-tooltip>
       </div>
     </header>
 
@@ -102,6 +110,16 @@ const toggleTheme = () => {
 
     <!-- 全局搜索弹窗 -->
     <GlobalSearch />
+
+    <!-- 设置弹窗 -->
+    <el-dialog
+      v-model="showSettings"
+      title="主题设置"
+      width="400px"
+      :append-to-body="true"
+    >
+      <ThemeSettings />
+    </el-dialog>
   </main>
 </template>
 

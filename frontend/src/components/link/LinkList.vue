@@ -157,8 +157,8 @@ const handleAddLink = () => {
 }
 
 .link-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 </style>

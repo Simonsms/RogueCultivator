@@ -146,17 +146,36 @@ onUnmounted(() => {
   overflow-y: auto;
   padding: 16px;
   box-sizing: border-box;
+  background-color: var(--bg-color);
+}
+
+/* 亮色主题适配 */
+.milkdown-editor {
+  --milkdown-background: var(--bg-color);
+  --milkdown-text: var(--text-color);
+  --code-bg: #f3f4f6;
 }
 
 /* 暗色主题适配 */
 html.dark .milkdown-editor {
-  --milkdown-background: var(--card-bg, #1e1e1e);
-  --milkdown-text: var(--text-color, #e0e0e0);
+  --milkdown-background: var(--bg-color);
+  --milkdown-text: var(--text-color);
+  --code-bg: #2d2d2d;
 }
 
 .milkdown-editor .milkdown {
   min-height: 100%;
   background: transparent;
+}
+
+/* 覆盖 Nord 主题的背景色 - 确保所有嵌套元素都透明 */
+.milkdown-editor .milkdown,
+.milkdown-editor .milkdown .editor,
+.milkdown-editor .milkdown-root,
+.milkdown-editor [data-milkdown-root],
+.milkdown-editor .ProseMirror {
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 .milkdown-editor .editor {
@@ -169,7 +188,7 @@ html.dark .milkdown-editor {
   min-height: 100%;
   font-size: 18px;
   line-height: 1.85;
-  color: var(--text-color);
+  color: var(--text-color) !important;
 }
 
 .milkdown-editor .ProseMirror:focus {

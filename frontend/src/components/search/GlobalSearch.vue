@@ -1,87 +1,96 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
-import { useUIStore } from '@/stores/ui'
-import { useNoteStore } from '@/stores/note'
-import { searchApi, type SearchResult } from '@/api/search'
-import { useDebounceFn } from '@vueuse/core'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import 'dayjs/locale/zh-cn'
+import { ref, watch, onMounted, onUnmounted } from "vue";
+import { useUIStore } from "@/stores/ui";
+import { useNoteStore } from "@/stores/note";
+import { searchApi, type SearchResult } from "@/api/search";
+import { useDebounceFn } from "@vueuse/core";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/zh-cn";
 
-dayjs.extend(relativeTime)
-dayjs.locale('zh-cn')
+dayjs.extend(relativeTime);
+dayjs.locale("zh-cn");
 
-const uiStore = useUIStore()
-const noteStore = useNoteStore()
+const uiStore = useUIStore();
+const noteStore = useNoteStore();
 
-const searchQuery = ref('')
-const searchResults = ref<SearchResult | null>(null)
-const loading = ref(false)
-const inputRef = ref<HTMLInputElement | null>(null)
+const searchQuery = ref("");
+const searchResults = ref<SearchResult | null>(null);
+const loading = ref(false);
+const inputRef = ref<HTMLInputElement | null>(null);
 
 // 防抖搜索
 const debouncedSearch = useDebounceFn(async (query: string) => {
   if (!query.trim()) {
-    searchResults.value = null
-    return
+    searchResults.value = null;
+    return;
   }
-  
-  loading.value = true
+
+  loading.value = true;
   try {
-    searchResults.value = await searchApi.search({ q: query })
+    searchResults.value = await searchApi.search({ q: query });
   } catch (e) {
-    console.error('搜索失败:', e)
+    console.error("搜索失败:", e);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}, 300)
+}, 300);
 
 // 监听搜索词变化
 watch(searchQuery, (newQuery) => {
-  debouncedSearch(newQuery)
-})
+  debouncedSearch(newQuery);
+});
 
 // 监听弹窗状态，自动聚焦
-watch(() => uiStore.searchVisible, (visible) => {
-  if (visible) {
-    setTimeout(() => {
-      inputRef.value?.focus()
-    }, 100)
-  } else {
-    searchQuery.value = ''
-    searchResults.value = null
+watch(
+  () => uiStore.searchVisible,
+  (visible) => {
+    if (visible) {
+      setTimeout(() => {
+        inputRef.value?.focus();
+      }, 100);
+    } else {
+      searchQuery.value = "";
+      searchResults.value = null;
+    }
   }
-})
+);
 
 // 全局快捷键
 const handleGlobalKeydown = (e: KeyboardEvent) => {
-  if (e.ctrlKey && e.key === 'k') {
-    e.preventDefault()
-    uiStore.toggleSearch()
+  if (e.ctrlKey && e.key === "k") {
+    e.preventDefault();
+    uiStore.toggleSearch();
   }
-  if (e.key === 'Escape' && uiStore.searchVisible) {
-    uiStore.closeSearch()
+  if (e.key === "Escape" && uiStore.searchVisible) {
+    uiStore.closeSearch();
   }
-}
+};
 
 onMounted(() => {
-  window.addEventListener('keydown', handleGlobalKeydown)
-})
+  window.addEventListener("keydown", handleGlobalKeydown);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleGlobalKeydown)
-})
+  window.removeEventListener("keydown", handleGlobalKeydown);
+});
 
 // 选择笔记
 const handleSelectNote = (noteId: string) => {
-  noteStore.selectNote(noteId)
-  uiStore.closeSearch()
-}
+  noteStore.selectNote(noteId);
+  uiStore.closeSearch();
+};
+
+// 打开链接
+const handleOpenLink = (url: string) => {
+  window.open(url, "_blank");
+  uiStore.closeSearch();
+};
 
 // 格式化时间
 const formatTime = (time: string) => {
-  return dayjs(time).fromNow()
-}
+  return dayjs(time).fromNow();
+};
 </script>
 
 <template>
@@ -117,14 +126,14 @@ const formatTime = (time: string) => {
       <template v-else-if="!searchQuery.trim()">
         <div class="result-section">
           <div class="section-title">最近访问</div>
-          <div 
-            v-for="note in noteStore.recentNotes" 
+          <div
+            v-for="note in noteStore.recentNotes"
             :key="note.id"
             class="result-item"
             @click="handleSelectNote(note.id)"
           >
             <el-icon><Document /></el-icon>
-            <span class="item-title">{{ note.title || '无标题' }}</span>
+            <span class="item-title">{{ note.title || "无标题" }}</span>
             <span class="item-time">{{ formatTime(note.updatedAt) }}</span>
           </div>
           <div v-if="noteStore.recentNotes.length === 0" class="empty-hint">
@@ -137,26 +146,31 @@ const formatTime = (time: string) => {
       <template v-else-if="searchResults">
         <!-- 笔记结果 -->
         <div v-if="searchResults.notes.length > 0" class="result-section">
-          <div class="section-title">笔记 ({{ searchResults.notes.length }})</div>
-          <div 
-            v-for="note in searchResults.notes" 
+          <div class="section-title">
+            笔记 ({{ searchResults.notes.length }})
+          </div>
+          <div
+            v-for="note in searchResults.notes"
             :key="note.id"
             class="result-item"
             @click="handleSelectNote(note.id)"
           >
             <el-icon><Document /></el-icon>
-            <span class="item-title">{{ note.title || '无标题' }}</span>
+            <span class="item-title">{{ note.title || "无标题" }}</span>
             <span class="item-time">{{ formatTime(note.updatedAt) }}</span>
           </div>
         </div>
 
         <!-- 链接结果 -->
         <div v-if="searchResults.links.length > 0" class="result-section">
-          <div class="section-title">链接 ({{ searchResults.links.length }})</div>
-          <div 
-            v-for="link in searchResults.links" 
+          <div class="section-title">
+            链接 ({{ searchResults.links.length }})
+          </div>
+          <div
+            v-for="link in searchResults.links"
             :key="link.id"
             class="result-item"
+            @click="handleOpenLink(link.url)"
           >
             <el-icon><Link /></el-icon>
             <span class="item-title">{{ link.title || link.url }}</span>
@@ -165,8 +179,10 @@ const formatTime = (time: string) => {
         </div>
 
         <!-- 无结果 -->
-        <div 
-          v-if="searchResults.notes.length === 0 && searchResults.links.length === 0" 
+        <div
+          v-if="
+            searchResults.notes.length === 0 && searchResults.links.length === 0
+          "
           class="empty-hint"
         >
           未找到相关内容
