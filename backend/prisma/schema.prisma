@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// 新架构：个人知识管理系统
+// ============================================
+
+// 笔记表 - 核心
+model Note {
+  id         String   @id @default(uuid())
+  title      String
+  content    String   // Markdown 内容
+  folderId   String?
+  folder     Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tags       Tag[]    @relation("NoteToTag")
+  isFavorite Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// 文件夹表
+model Folder {
+  id        String   @id @default(uuid())
+  name      String
+  icon      String?
+  parentId  String?
+  parent    Folder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Folder[] @relation("FolderTree")
+  notes     Note[]
+  links     Link[]
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 标签表
+model Tag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  color     String?
+  notes     Note[]   @relation("NoteToTag")
+  links     Link[]   @relation("LinkToTag")
+  createdAt DateTime @default(now())
+}
+
+// 链接收藏表
+model Link {
+  id        String   @id @default(uuid())
+  url       String
+  title     String?
+  summary   String?
+  favicon   String?
+  folderId  String?
+  folder    Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tags      Tag[]    @relation("LinkToTag")
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
