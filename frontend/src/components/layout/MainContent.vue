@@ -67,13 +67,6 @@ const toggleTheme = () => {
             编辑
           </el-button>
           <el-button
-            :type="uiStore.editorMode === 'preview' ? 'primary' : 'default'"
-            size="small"
-            @click="uiStore.setEditorMode('preview')"
-          >
-            预览
-          </el-button>
-          <el-button
             :type="uiStore.editorMode === 'split' ? 'primary' : 'default'"
             size="small"
             @click="uiStore.setEditorMode('split')"

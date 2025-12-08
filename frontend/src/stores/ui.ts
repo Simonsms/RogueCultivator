@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-export type EditorMode = "edit" | "preview" | "split";
+export type EditorMode = "edit" | "split";
 export type MainView = "notes" | "links";
 
 export const useUIStore = defineStore("ui", () => {
@@ -27,7 +27,7 @@ export const useUIStore = defineStore("ui", () => {
 
   // 切换编辑器模式
   function toggleEditorMode() {
-    const modes: EditorMode[] = ["edit", "preview", "split"];
+    const modes: EditorMode[] = ["edit", "split"];
     const currentIndex = modes.indexOf(editorMode.value);
     const nextMode = modes[(currentIndex + 1) % modes.length];
     editorMode.value = nextMode ?? "edit";

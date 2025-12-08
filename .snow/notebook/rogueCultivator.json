@@ -52,5 +52,14 @@
       "createdAt": "2025-12-08T14:16:04.250",
       "updatedAt": "2025-12-08T14:16:04.250"
     }
+  ],
+  "frontend/src/components/editor/MarkdownPreview.vue": [
+    {
+      "id": "notebook-1765177080499_vedazitx7",
+      "filePath": "frontend/src/components/editor/MarkdownPreview.vue",
+      "note": "⚠️ 使用 new Marked() 创建独立实例而非全局 marked，避免多组件实例化时配置累积冲突。marked.parse() 在 v17+ 可能返回 Promise，需要用 async/await 处理。",
+      "createdAt": "2025-12-08T14:58:00.499",
+      "updatedAt": "2025-12-08T14:58:00.499"
+    }
   ]
 }

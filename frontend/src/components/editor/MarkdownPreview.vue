@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
-import { marked } from "marked";
+import { ref, onMounted, onUnmounted, watch } from "vue";
+import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
 import "highlight.js/styles/github-dark.css";
@@ -14,9 +14,10 @@ const emit = defineEmits<{
 }>();
 
 const previewRef = ref<HTMLDivElement | null>(null);
+const renderedHtml = ref<string>("");
 
-// 配置 marked 使用 highlight.js
-marked.use(
+// 创建独立的 Marked 实例，避免全局配置冲突
+const markedInstance = new Marked(
   markedHighlight({
     langPrefix: "hljs language-",
     highlight(code: string, lang: string) {
@@ -29,25 +30,36 @@ marked.use(
       }
       return hljs.highlightAuto(code).value;
     },
-  })
+  }),
+  {
+    breaks: true,
+    gfm: true,
+  }
 );
 
-// 配置 GFM 和换行
-marked.setOptions({
-  breaks: true,
-  gfm: true,
-});
-
-// 渲染 Markdown
-const renderedContent = computed(() => {
-  if (!props.content) return "";
+// 渲染 Markdown - 使用 watch 和 ref 处理可能的异步返回值
+const renderMarkdown = async (content: string) => {
+  if (!content) {
+    renderedHtml.value = "";
+    return;
+  }
   try {
-    return marked(props.content);
+    const result = await markedInstance.parse(content);
+    renderedHtml.value = result;
   } catch (e) {
     console.error("Markdown render error:", e);
-    return props.content;
+    renderedHtml.value = content;
   }
-});
+};
+
+// 监听 content 变化进行渲染
+watch(
+  () => props.content,
+  (newContent) => {
+    renderMarkdown(newContent);
+  },
+  { immediate: true }
+);
 
 // 滚动事件处理
 const handleScroll = () => {
@@ -84,7 +96,7 @@ onUnmounted(() => {
 
 <template>
   <div ref="previewRef" class="markdown-preview">
-    <div class="markdown-body" v-html="renderedContent"></div>
+    <div class="markdown-body" v-html="renderedHtml"></div>
   </div>
 </template>
 
