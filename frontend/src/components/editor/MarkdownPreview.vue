@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from "vue";
-import { Marked } from "marked";
-import { markedHighlight } from "marked-highlight";
+import { marked } from "marked";
 import hljs from "highlight.js";
 import "highlight.js/styles/github-dark.css";
 
@@ -16,39 +15,64 @@ const emit = defineEmits<{
 const previewRef = ref<HTMLDivElement | null>(null);
 const renderedHtml = ref<string>("");
 
-// 创建独立的 Marked 实例，避免全局配置冲突
-const markedInstance = new Marked(
-  markedHighlight({
-    langPrefix: "hljs language-",
-    highlight(code: string, lang: string) {
-      if (lang && hljs.getLanguage(lang)) {
-        try {
-          return hljs.highlight(code, { language: lang }).value;
-        } catch {
-          // 忽略高亮错误
-        }
-      }
-      return hljs.highlightAuto(code).value;
-    },
-  }),
-  {
-    breaks: true,
-    gfm: true,
-  }
-);
+// 配置 marked - 使用全局配置
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+});
 
-// 渲染 Markdown - 使用 watch 和 ref 处理可能的异步返回值
-const renderMarkdown = async (content: string) => {
+// 自定义渲染器 - 代码块高亮
+const renderer = new marked.Renderer();
+
+// 重写 code 方法 - marked v17 的 code token 结构
+renderer.code = function ({ text, lang }: { text: string; lang?: string }) {
+  const language = lang || "";
+  const code = text || "";
+
+  if (language && hljs.getLanguage(language)) {
+    try {
+      const highlighted = hljs.highlight(code, { language }).value;
+      return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`;
+    } catch {
+      // 高亮失败，使用原始代码
+    }
+  }
+  // 无语言或不支持的语言
+  const escaped = code
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  return `<pre><code>${escaped}</code></pre>`;
+};
+
+marked.use({ renderer });
+
+// 渲染 Markdown
+const renderMarkdown = (content: string) => {
   if (!content) {
     renderedHtml.value = "";
     return;
   }
   try {
-    const result = await markedInstance.parse(content);
-    renderedHtml.value = result;
+    const result = marked.parse(content);
+    if (result instanceof Promise) {
+      result.then((html) => {
+        renderedHtml.value = html;
+        console.log(
+          "[MarkdownPreview] Rendered HTML (first 300 chars):",
+          html.substring(0, 300)
+        );
+      });
+    } else {
+      renderedHtml.value = result;
+      console.log(
+        "[MarkdownPreview] Rendered HTML (first 300 chars):",
+        result.substring(0, 300)
+      );
+    }
   } catch (e) {
-    console.error("Markdown render error:", e);
-    renderedHtml.value = content;
+    console.error("[MarkdownPreview] Render error:", e);
+    renderedHtml.value = `<pre style="color: red;">渲染错误: ${e}</pre>`;
   }
 };
 
@@ -178,6 +202,7 @@ onUnmounted(() => {
   padding: 0;
   font-size: 14px;
   line-height: 1.6;
+  color: #e0e0e0;
 }
 
 /* 行内代码 */
@@ -222,10 +247,10 @@ onUnmounted(() => {
 /* 表格 */
 .markdown-body table {
   border-collapse: collapse;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   margin: 1em 0;
-  overflow-x: auto;
-  display: block;
+  display: table;
 }
 
 .markdown-body th,

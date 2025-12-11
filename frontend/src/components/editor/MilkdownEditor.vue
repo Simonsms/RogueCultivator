@@ -13,6 +13,8 @@ import { listener, listenerCtx } from "@milkdown/plugin-listener";
 import { clipboard } from "@milkdown/plugin-clipboard";
 import { nord } from "@milkdown/theme-nord";
 import "@milkdown/theme-nord/style.css";
+// 核心 prosemirror 样式 - Milkdown 7 必须导入
+import "@milkdown/kit/prose/view/style/prosemirror.css";
 
 const props = defineProps<{
   modelValue: string;

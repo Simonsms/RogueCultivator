@@ -6,7 +6,7 @@ import { useTagStore } from "@/stores/tag";
 import { useFolderStore } from "@/stores/folder";
 import type { Note } from "@/api/note";
 import { useDebounceFn, useThrottleFn } from "@vueuse/core";
-import MilkdownEditor from "@/components/editor/MilkdownEditor.vue";
+import CodeMirrorEditor from "@/components/editor/CodeMirrorEditor.vue";
 import MarkdownPreview from "@/components/editor/MarkdownPreview.vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 
@@ -29,7 +29,7 @@ const selectedTagIds = ref<string[]>(props.note.tags?.map((t) => t.id) || []);
 const selectedFolderId = ref<string | null>(props.note.folderId);
 
 // 同步滚动相关
-const editorRef = ref<InstanceType<typeof MilkdownEditor> | null>(null);
+const editorRef = ref<InstanceType<typeof CodeMirrorEditor> | null>(null);
 const previewRef = ref<InstanceType<typeof MarkdownPreview> | null>(null);
 const isSyncingScroll = ref(false); // 防止循环触发
 
@@ -234,10 +234,10 @@ const currentFolder = computed(() => {
 
     <!-- 编辑/预览区域 -->
     <div class="editor-content" :class="`mode-${uiStore.editorMode}`">
-      <!-- Milkdown 编辑器 -->
+      <!-- CodeMirror Markdown 编辑器 -->
       <!-- 使用 note.id 作为 key，确保切换笔记时编辑器完全重新挂载 -->
       <div class="editor-pane">
-        <MilkdownEditor
+        <CodeMirrorEditor
           ref="editorRef"
           :key="`editor-${note.id}`"
           :model-value="content"
