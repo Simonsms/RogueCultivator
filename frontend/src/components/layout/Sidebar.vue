@@ -58,7 +58,7 @@ const handleTabChange = (tab: "folders" | "tags") => {
     <div class="sidebar-header">
       <div class="logo" v-if="!collapsed">
         <span class="logo-icon">📚</span>
-        <span class="logo-text">RogueCultivator-simon</span>
+        <span class="logo-text">小金库~</span>
       </div>
       <el-button
         v-if="collapsed"
